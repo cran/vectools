@@ -1,0 +1,421 @@
+%\VignetteIndexEntry{Supplementary Vector-Related Tools}
+\documentclass{article}
+\usepackage[a4paper,top=2.6cm,bottom=3.6cm,left=3.6cm,right=3.6cm]{geometry}
+\usepackage{parskip,verbatim,amsmath,amssymb,color}
+\usepackage[nogin]{Sweave}
+\pagestyle{myheadings}
+\setlength{\parskip}{0.28cm}
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{xleftmargin=0.75em, formatcom=\color{rin}}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{xleftmargin=0.75em,formatcom=\color{rout}}
+\DefineVerbatimEnvironment{Serror}{Verbatim}{xleftmargin=0.75em,formatcom=\color{rerr}}
+\newcommand {\stitle}[3]
+{	\title {\vspace {-0.6cm} {\normalsize #1 #2 } \\[0.8cm] {\textbf {\huge #3} } }
+	\author {\textbf {Abby Spurdle} }
+	\maketitle
+	\markright{Spurdle, A.\hfill #1 #2\hfill}
+	\thispagestyle {empty}
+}
+\newcommand {\sabstract}[1]
+{	\begin {center}
+	\begin {minipage}{14.25cm}
+		{\textsl {#1} }
+	\end {minipage}
+	\end {center}
+	\vspace {0.06cm}
+}
+\definecolor{db}{rgb}{0.1, 0, 0.55}
+\definecolor{rin}{rgb}{0, 0, 0.32}
+\definecolor{rout}{rgb}{0, 0.14, 0}
+\definecolor{rerr}{rgb}{0.5, 0.025, 0}
+\SweaveOpts{keep.source=TRUE}
+\SweaveOpts{eps=FALSE}
+\SweaveOpts{prefix.string=temp-vectools}
+\begin{document}
+
+<<echo=false>>=
+options(continue="  ")
+options(SweaveHooks=list(fig=function()
+par(mar=c(4.1, 4.1, 2.6, 1.6), cex=0.7, cex.main=1)))
+set.seed (1)
+@
+
+\newcommand{\pnt}{$\bullet$}
+\newcommand{\tmu}[1]{\textbf {\textsf {\color{db} #1}}}
+\newcommand{\ind}{\hspace {0.375cm} }
+\newcommand{\indf}{\vspace {-0.175cm} \hspace {0.375cm} }
+
+\stitle {vectools}{0.1.1}{Supplementary\\Vector-Related Tools}
+
+\sabstract {Supports formatted nested/partitioned matrices, formatted object arrays and similar formatted data.frame(s), via coercion. These objects can be printed with plain text mark up, including their partitions and submatrices. Also, includes an SQL-like select function, grouped head functions and combined head and tail functions.}
+
+\begin {center} \tmu {***note that this package is subject to change***} \end {center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Formatted tables are a central feature of software like Microsoft Excel.
+
+Formatted matrices and tables are also used in reporting contexts, including Latex/amsmath and HTML documents.
+
+However, R has limited support for such objects.
+
+The primary goal of this package is to support formatted object arrays and formatted nested/partitioned matrices, at an interactive level. Also, it contains tools for subsetting and tabular data analysis. Other tools are likely be added in the near future.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Preliminary Code}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+I will load (and attach) the vectools package:
+<<>>=
+library (vectools)
+@
+
+Also, I will create three matrices:
+<<>>=
+s4x4 = matrix (1:16, 4, 4)
+s10 = matrix (1:100, 10, 10)
+s20 = matrix (1:400, 20, 20)
+@
+
+\newpage
+\begin {center} \Large \textbf {Part One\\Classes and Objects} \end {center}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Classes}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In this package, the root class is:
+\begin{itemize}
+	\item \tmu {VectorLike} (Vector-Like Object)
+\end{itemize}
+
+This has two subclasses:
+\begin{itemize}
+	\item \tmu {ObjectArray} (Object Array)\\
+		These objects are similar to lists, including list matrices and list arrays.
+	\item \tmu {MatrixLike} (Matrix-Like Object)
+\end{itemize}
+
+The MatrixLike class, has two subclasses:
+\begin{itemize}
+	\item \tmu {NestMatrix} (Nested Matrix)\\
+		These objects are similar to two-dimensional object arrays, and represent matrices where their elements are also matrices. Currently, there's no restrictions on the dimensions of their submatrices. Also, nested matrices may be recursively nested.\\i.e. A matrix within a matrix within a matrix within a matrix...
+	\item \tmu {SectMatrix} (Sectioned Matrix)\\
+		These objects are derived from a single matrix, with rectangular sections defining arbitrary submatrices, which may or may not, form a partition of the matrix.
+\end{itemize}
+
+Furthermore, SectMatrix class, has a single subclass:
+\begin{itemize}
+	\item \tmu {PartMatrix} (Partitioned Matrix)\\
+		These objects are also derived from a single matrix, and can be interpreted as a matrix with horizontal/vertical seperators between rows/columns, which implicitly define a (non-recursively) nested matrix, where the submatrices have matching dimensions.
+\end{itemize}
+
+There are limited subsetting operators, and dim, print, format, head and tail methods.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Object Arrays}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In R, the standard way to create object arrays is via list matrices and list arrays. That works, however, the resulting objects are difficult to format.
+
+Here, \tmu {ObjectArray} objects, can be used to simplify the process, and support flexible formatting.
+
+Constructors for near-trivial (S3) classes:
+
+<<>>=
+alphabet.1 = function ()
+    structure (LETTERS, class="alphabet.1")
+alphabet.2 = function ()
+    structure (sample (LETTERS), class="alphabet.2")
+@
+
+A near-trivial 2x2 object array:
+
+<<>>=
+x = ObjectArray (c (2, 2) )
+x [[1, 1]] = alphabet.1 ()
+x [[2, 1]] = alphabet.1 ()
+x [[1, 2]] = alphabet.2 ()
+x [[2, 2]] = alphabet.2 ()
+@
+
+Printed with default formatting:
+
+<<>>=
+x
+@
+
+To customize the formatting, we can write (S3) objtag methods for our classes:
+
+<<>>=
+objtag.alphabet.1 = function (x)
+    paste ("<A1 ", x [1], ":", x [26], ">", sep="")
+objtag.alphabet.2 = function (x)
+    paste ("<A2 ", x [1], ":", x [26], ">", sep="")
+@
+
+And we get:
+<<>>=
+x
+@
+
+Note that objtag methods need to return a single string.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Nested Matrices\\(Simple Case)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Re-iterating, \tmu {NestMatrix} objects are similar to two-dimensional object arrays.
+
+In general, a nested matrix is mathematically equivalent to a partitioned matrix, so we can construct them in a similar way to a partitioned matrix, discussed later.
+
+<<>>=
+x = as.NestMatrix (s10, 5, c (2, 4, 6, 8) )
+@
+
+The top-level object:
+<<>>=
+x
+@
+
+Expanding the first element:
+<<>>=
+x [[1, 1]]
+@
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Nested Matrices\\(General Case)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+For more general cases, we can use the main NestMatrix constructor or the as.NestMatrix.2 function:
+<<>>=
+xsub = NestMatrix (4, 4)
+for (i in 1:4)
+{   for (j in 1:4)
+        xsub [[i, j]] = s4x4
+}
+@
+
+<<>>=
+x = NestMatrix (4, 4)
+for (i in 1:4)
+{   for (j in 1:4)
+        x [[i, j]] = xsub
+}
+@
+
+The top-level object (x):
+<<>>=
+x
+@
+
+Expanding the first element (one of the xsub objects):
+<<>>=
+x [[1, 1]]
+@
+
+Expanding the first element within the first element (one of the s4x4 objects):
+<<>>=
+x [[1, 1]][[1, 1]]
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Sectioned Matrices}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Here, \tmu {SectMatrix} objects contain a single matrix, with sections.
+
+They can be created using either the SectMatrix or as.SectMatrix functions, and then using the setmap function to define what I refer to as section maps.
+
+<<>>=
+x = as.SectMatrix (s10, 2)
+setmap (x, 1) = c (2, 2, 4, 4)
+setmap (x, 2) = c (7, 7, 9, 9)
+x
+@
+
+Single bracket subsetting gives submatrices and double bracket subsetting gives elements from the combined matrix:
+
+<<>>=
+x [1]
+@
+
+<<>>=
+x [1][1, 2]
+x [[2, 3]]
+@
+
+Note that it's possible for submatrices to overlap:
+
+<<>>=
+setmap (x, 1) = c (2, 2, 7, 7)
+setmap (x, 2) = c (4, 4, 9, 9)
+x
+@
+
+Als note that you need to set all the section maps, before printing or formatting.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Partitioned Matrices}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Re-iterating, \tmu {PartMatrix} objects extend sectioned matrices.
+
+They're created using either the PartMatrix or as.PartMatrix functions, and by specifying the inter-row and inter-column indicies of seperators.
+
+Here's a partitioned matrix, with one row separator, and four column separators:
+<<>>=
+x = as.PartMatrix (s10, 5, c (2, 4, 6, 8) )
+x
+@
+
+In principle, subsetting is the same as sectioned matrices:
+
+<<>>=
+x [1, 2]
+@
+
+<<>>=
+x [1,2][2, 1]
+x [[2, 3]]
+@
+
+However, partitioned matrices always use two dimensional section indicies, whereas sectioned matrices can use one, two or higher dimensional indices.\\
+i.e. The example in the previous section, used one dimensional indices.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Nested Matrices vs Partitioned Matrices}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+If we limit nested matrices to the simple case, then nested matrices and (regular) partitioned matrices are mathematically equivalent. However, this package implements them differently, and uses different formatting.
+
+Here's a comparision:
+
+<<>>=
+nm = as.NestMatrix (s10, 5, c (2, 4, 6, 8) )
+pm = as.PartMatrix (s10, 5, c (2, 4, 6, 8) )
+@
+
+\newpage
+<<>>=
+nm
+pm
+@
+
+Also, note the differences in dimensions and subsetting operators:
+
+<<>>=
+dim (nm)
+dim (pm)
+@
+
+<<>>=
+nm [[1, 1]]
+pm [1, 1]
+@
+
+Expanding on a previous point, this package is subject to change, and in particular, the handling of dimensions and subsetting operations.
+
+\newpage
+\begin {center} \Large \textbf {Part Two\\SQL-Like Functions} \end {center}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {SQL-Like Select Function}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \tmu {select} function is a R (only) function with standard R syntax, but nonstandard evaluation. Currently, it supports a subset of SQL select functionality, and is designed for convenience only and not for high performance or large datasets. This vignette is just a demonstration, refer to the help page for more details.
+
+I will use the mtcars data.
+
+Trivial use:
+
+<<>>=
+#all variables
+head (
+    select (., from (mtcars) )
+)
+@
+
+<<>>=
+head (
+    select (am, cyl, mpg, from (mtcars) )
+)
+@
+
+And for a less trivial example, using the \tmu {select} function to produce the count and mean of mpg, grouped by am and cy1:
+
+<<>>=
+select (am, cyl,
+    from (mtcars),
+    group.by (am, cyl),
+        count <- length (mpg),
+        mean.mpg <- mean (mpg) )
+@
+
+Using an SQL-like function for aggregation, has the advantage that it's relative simple and intuitive.
+
+Optionally, we can partition and sort the data:
+
+<<>>=
+select (am, cyl,
+    from (mtcars),
+    group.by (am, cyl), partition.by (am), sort.by (-am, -mean.mpg),
+        count <- length (mpg),
+        mean.mpg <- mean (mpg) )
+@
+
+The where construct is currently simple, and can be applied to variables present both before and after grouping:
+
+<<>>=
+head (
+    select (am, cyl, mpg, from (mtcars), where (mpg >= 20) )
+)
+@
+
+\newpage
+\begin {center} \Large \textbf {Part Three\\Head and Tail Generalizations} \end {center}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Combined Head and Tail Methods\\(Matrices)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \tmu {headt} function can be used to print the head and tail simultaneously.
+
+I will use a SectMatrix object, however, this works on several classes:
+
+<<>>=
+x = as.SectMatrix (s20, 2)
+setmap (x, 1) = c (2, 2, 19, 19)
+setmap (x, 2) = c (3, 3, 18, 18)
+@
+
+Head and tail, with n = 6.
+<<>>=
+headt (x, 6)
+@
+
+We can specify rows and columns separately:
+<<>>=
+headt (x, c (3, 6) )
+@
+
+And head and tail separately:
+
+\newpage
+<<>>=
+headt (x, 6, 3)
+@
+
+Note that currently, the size arguments, include the seperators.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Grouped Head\\(Tables)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \tmu {headg} function can be used to produce head(s) for subsets:
+
+<<>>=
+headg (iris, "Species")
+@
+
+Currently, it only supports data.frame(s).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section* {Combined Head and Tail Methods\\(Tables)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The \tmu {headt} function works on standard matrices and data.frame(s), too.
+
+Here's an example using the trees data:
+
+<<>>=
+headt (trees)
+@
+
+\end{document}
