@@ -1,4 +1,4 @@
-#vectools: Supplementary Vector-Related Tools
+#vectools: Advanced Vector Toolkit
 #Copyright (C), Abby Spurdle, 2020
 
 #This program is distributed without any warranty.
@@ -19,11 +19,13 @@
 
 objtag.default = function (x, ...)
 {	if (is.null (x) )
-		""
+		"."
+	else if (isS4 (x) )
+		"<S4>"
 	else
 	{	y = x
 		attributes (y) = NULL
-		if (is.vector (y) )
+		if (.is.vector (y) )
 		{	if (length (y) == 1)
 			{	if (is.character (y) )
 				{	y = trimws (y)
@@ -33,20 +35,23 @@ objtag.default = function (x, ...)
 						paste (substring (y, 1, 4), "..", sep="")
 				}
 				else
-					y
+					as.character (y)
 			}
 			else
 				.objtag ("v",, y)
 		}
 		else
-			"*"
+			"!"
 	}
 }
+
+objtag.ZERO = function (x, ...) "<0>"
 
 objtag.ObjectArray = function (x, ...) .objtag ("OA", .dimstr (x) )
 objtag.NestMatrix = function (x, ...) .objtag ("NM", .dimstr (x) )
 objtag.SectMatrix = function (x, ...) .objtag ("SM", .dimstr (x) )
 objtag.PartMatrix = function (x, ...) .objtag ("PM", .dimstr (x) )
+objtag.MatrixArray = function (x, ...) .objtag ("vM", .dimstr (x) )
 
 objtag.function = function (x, ...) "<f>"
 objtag.list = function (x, ...) .objtag ("l",, x)

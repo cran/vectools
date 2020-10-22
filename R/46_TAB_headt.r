@@ -1,4 +1,4 @@
-#vectools: Supplementary Vector-Related Tools
+#vectools: Advanced Vector Toolkit
 #Copyright (C), Abby Spurdle, 2020
 
 #This program is distributed without any warranty.
@@ -21,11 +21,14 @@
 
 .data = function (x)
 {	y = x@data
-	if (is.na (x@rnames [1]) )
+
+	if (is.null (x@rnames) )
 		rownames (y) = paste ("[", 1:x@nr, ",]", sep="")
 	else
 		rownames (y) = x@rnames
-	if (is.na (x@cnames [1]) )
+
+
+	if (is.null (x@cnames) )
 		colnames (y) = paste ("[,", 1:x@nc, "]", sep="")
 	else
 		colnames (y) = x@cnames
@@ -70,31 +73,9 @@ headt.matrix = function (x, nh=3, nt=nh, ...)
 	{	x = x [c (1:nh [1], (1 + nr - nt [1]):nr), c (1:nh [2], (1 + nc - nt [2]):nc)]
 		y = as.PartMatrix (x, nh [1], nh [2])
 	}
-	noquote (format (y, hsep="#", vsep="#", xsym="#") )
+	noquote (format (y, hsep=".", vsep=".", xsym=".") )
 }
 
-headg.data.frame = function (x, group.by, n=3, ...)
-{	g = x [,group.by]
-	u = unique (g)
-	nu = length (u)
-	x = .val.names (x)
-	Rb = numeric ()
-	nr = 0
-	ns = y = list ()
-	for (i in seq_len (nu) )
-	{	sub = head (x [u [i] == g,], n, ...)
-		ns [[i]] = rownames (sub)
-		y [[i]] = sub
-		nr = nr + nrow (sub)
-		if (i < nu)
-			Rb = c (Rb, nr)
-	}
-	z = PartMatrix (Rb,, nr, ncol (x), unlist (ns), colnames (x), "")
-	z@header = TRUE
-	for (i in seq_len (nu) )
-		z [i, 1] = .as.matrix (y [[i]])
-	noquote (format (z) )
-}
 
 headt.data.frame = function (x, nh=3, nt=nh, ...)
 {	x = .as.matrix (x)
@@ -104,6 +85,6 @@ headt.data.frame = function (x, nh=3, nt=nh, ...)
 	{	x = .val.names (x)
 		x = rbind (head (x, nh), tail (x, nt) )
 		x = as.PartMatrix (x, nh)
-		noquote (format (x, hsep="#") )
+		noquote (format (x, hsep=".") )
 	}
 }

@@ -1,4 +1,4 @@
-#vectools: Supplementary Vector-Related Tools
+#vectools: Advanced Vector Toolkit
 #Copyright (C), Abby Spurdle, 2020
 
 #This program is distributed without any warranty.
@@ -11,40 +11,30 @@
 #Also, this license should be available at:
 #https://cran.r-project.org/web/licenses/GPL-2
 
-format.ObjectArray = function (x, na.string="", ...)
-{	if (x@nbd == 0)
+format.ObjectArray = function (x, ...)
+{	if (x@N == 0)
 		"empty ObjectArray"
-	else if (x@nbd == 1)
-	{	y = character (x@dim)
-		if (! is.na (x@names [[1]][1]) )
+	else if (x@N == 1)
+	{	y = character (x@n)
+		if (length (x@names) == 1)
 			names (y) = x@names [[1]]
-		for (i in seq_len (x@dim) )
-		{	if (.is.na.2 (x [[i]]) )
-				y [1] = na.string
-			else
-				y [i] = objtag (x [[i]], ...)
-		}
+		for (i in seq_len (x@n) )
+			y [i] = objtag (x [[i]], ...)
+		y
 	}
-	else if (x@nbd == 2)
-	{	y = matrix ("", x@dim [1], x@dim [2])
-		if (! is.na (x@names [[1]][1]) )
-			rownames (y) = x@names [[1]]
-		if (! is.na (x@names [[2]][1]) )
+	else if (x@N == 2)
+	{	y = matrix ("", x@n [1], x@n [2])
+		if (length (x@names) == 2)
+		{	rownames (y) = x@names [[1]]
 			colnames (y) = x@names [[2]]
-		for (i in seq_len (prod (x@dim) ) )
-		{	if (.is.na.2 (x@data [[i]]) )
-				y [i] = na.string
-			else
-				y [i] = objtag (x@data [[i]], ...)
 		}
+		for (i in seq_len (prod (x@n) ) )
+			y [i] = objtag (x@data [[i]], ...)
+		y
 	}
 	else
-		stop ("can't format higher-dim ObjectArray")
-	y
+		"higher-dim ObjectArray"
 }
-
-format.NestMatrix = function (x, na.string="", ...)
-	format (x@data, na.string, ...)
 
 format.SectMatrix = function (x, na.string="", ...)
 	.format.SectMatrix (x, na.string, ...)
@@ -94,16 +84,21 @@ format.SectMatrix = function (x, na.string="", ...)
 		y [1, (1:nc2)[u] ] = mbar
 	}
 	y = y [-nr2,, drop=FALSE]
+	y = y [,-nc2, drop=FALSE]
+	inRow = rep_len (c (FALSE, TRUE), nr2 - 1)
+	inCol = rep_len (c (FALSE, TRUE), nc2 - 1)
+
 	if (nr > 1)
 	{	for (i in seq (2 * nr - 1, 3, by=-2) )
-		{	if (! any (y [i,] == hbar) )
+		{	if (! any (y [i, inCol] == hbar) )
+			{	inRow = inRow [-i]
 				y = y [-i,]
+			}
 		}
 	}
-	y = y [,-nc2, drop=FALSE]
 	if (nc > 1)
 	{	for (j in seq (2 * nc - 1, 3, by=-2) )
-		{	if (! any (y [,j] == vsep) )
+		{	if (! any (y [inRow ,j] == vsep) )
 				y = y [,-j]
 		}
 	}

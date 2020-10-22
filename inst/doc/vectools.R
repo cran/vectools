@@ -10,213 +10,102 @@ set.seed (1)
 
 
 ###################################################
-### code chunk number 2: vectools.Rnw:68-69
+### code chunk number 2: vectools.Rnw:52-53
 ###################################################
 library (vectools)
 
 
 ###################################################
-### code chunk number 3: vectools.Rnw:73-76
+### code chunk number 3: vectools.Rnw:59-61
 ###################################################
-s4x4 = matrix (1:16, 4, 4)
-s10 = matrix (1:100, 10, 10)
-s20 = matrix (1:400, 20, 20)
+myobject <- structure (0, class="myclass")
+objtag.myclass <- function (object, ...) "<X>"
 
 
 ###################################################
-### code chunk number 4: vectools.Rnw:121-125
+### code chunk number 4: vectools.Rnw:64-66
 ###################################################
-alphabet.1 = function ()
-    structure (LETTERS, class="alphabet.1")
-alphabet.2 = function ()
-    structure (sample (LETTERS), class="alphabet.2")
+v <- ObjectArray ("myclass", c (8, 8) )
+v [[1, 1]] <- myobject
 
 
 ###################################################
-### code chunk number 5: vectools.Rnw:130-135
+### code chunk number 5: vectools.Rnw:69-70
 ###################################################
-x = ObjectArray (c (2, 2) )
-x [[1, 1]] = alphabet.1 ()
-x [[2, 1]] = alphabet.1 ()
-x [[1, 2]] = alphabet.2 ()
-x [[2, 2]] = alphabet.2 ()
+v
 
 
 ###################################################
-### code chunk number 6: vectools.Rnw:140-141
+### code chunk number 6: vectools.Rnw:73-74
 ###################################################
-x
+head (v, 3)
 
 
 ###################################################
-### code chunk number 7: vectools.Rnw:146-150
+### code chunk number 7: vectools.Rnw:81-82
 ###################################################
-objtag.alphabet.1 = function (x)
-    paste ("<A1 ", x [1], ":", x [26], ">", sep="")
-objtag.alphabet.2 = function (x)
-    paste ("<A2 ", x [1], ":", x [26], ">", sep="")
+x <- matrix (1:16, 4, 4)
 
 
 ###################################################
-### code chunk number 8: vectools.Rnw:154-155
+### code chunk number 8: vectools.Rnw:85-87
 ###################################################
-x
+pm <- as.PartMatrix (x, c (1, 3), c (1, 3) )
+nm <- as.NestMatrix (pm)
 
 
 ###################################################
-### code chunk number 9: vectools.Rnw:167-168
-###################################################
-x = as.NestMatrix (s10, 5, c (2, 4, 6, 8) )
-
-
-###################################################
-### code chunk number 10: vectools.Rnw:172-173
-###################################################
-x
-
-
-###################################################
-### code chunk number 11: vectools.Rnw:177-178
-###################################################
-x [[1, 1]]
-
-
-###################################################
-### code chunk number 12: vectools.Rnw:186-191
-###################################################
-xsub = NestMatrix (4, 4)
-for (i in 1:4)
-{   for (j in 1:4)
-        xsub [[i, j]] = s4x4
-}
-
-
-###################################################
-### code chunk number 13: vectools.Rnw:194-199
-###################################################
-x = NestMatrix (4, 4)
-for (i in 1:4)
-{   for (j in 1:4)
-        x [[i, j]] = xsub
-}
-
-
-###################################################
-### code chunk number 14: vectools.Rnw:203-204
-###################################################
-x
-
-
-###################################################
-### code chunk number 15: vectools.Rnw:208-209
-###################################################
-x [[1, 1]]
-
-
-###################################################
-### code chunk number 16: vectools.Rnw:213-214
-###################################################
-x [[1, 1]][[1, 1]]
-
-
-###################################################
-### code chunk number 17: vectools.Rnw:224-228
-###################################################
-x = as.SectMatrix (s10, 2)
-setmap (x, 1) = c (2, 2, 4, 4)
-setmap (x, 2) = c (7, 7, 9, 9)
-x
-
-
-###################################################
-### code chunk number 18: vectools.Rnw:233-234
-###################################################
-x [1]
-
-
-###################################################
-### code chunk number 19: vectools.Rnw:237-239
-###################################################
-x [1][1, 2]
-x [[2, 3]]
-
-
-###################################################
-### code chunk number 20: vectools.Rnw:244-247
-###################################################
-setmap (x, 1) = c (2, 2, 7, 7)
-setmap (x, 2) = c (4, 4, 9, 9)
-x
-
-
-###################################################
-### code chunk number 21: vectools.Rnw:260-262
-###################################################
-x = as.PartMatrix (s10, 5, c (2, 4, 6, 8) )
-x
-
-
-###################################################
-### code chunk number 22: vectools.Rnw:267-268
-###################################################
-x [1, 2]
-
-
-###################################################
-### code chunk number 23: vectools.Rnw:271-273
-###################################################
-x [1,2][2, 1]
-x [[2, 3]]
-
-
-###################################################
-### code chunk number 24: vectools.Rnw:286-288
-###################################################
-nm = as.NestMatrix (s10, 5, c (2, 4, 6, 8) )
-pm = as.PartMatrix (s10, 5, c (2, 4, 6, 8) )
-
-
-###################################################
-### code chunk number 25: vectools.Rnw:292-294
+### code chunk number 9: vectools.Rnw:90-92
 ###################################################
 nm
 pm
 
 
 ###################################################
-### code chunk number 26: vectools.Rnw:299-301
+### code chunk number 10: vectools.Rnw:95-97
 ###################################################
-dim (nm)
-dim (pm)
+nm [[1, 2]]
+nm [[1, 2, drop=FALSE]]
 
 
 ###################################################
-### code chunk number 27: vectools.Rnw:304-306
+### code chunk number 11: vectools.Rnw:104-105
 ###################################################
-nm [[1, 1]]
-pm [1, 1]
+x <- matrix (1:64, 8, 8)
 
 
 ###################################################
-### code chunk number 28: vectools.Rnw:322-326
+### code chunk number 12: vectools.Rnw:108-118
 ###################################################
-#all variables
-head (
-    select (., from (mtcars) )
-)
+sm <- as.SectMatrix (x, vmap = n22 (
+    1, 8, #1
+    1, 8,
+    3, 8, #2
+    3, 8,
+    5, 8, #3
+    5, 8,
+    7, 8, #4
+    7, 8
+    ) )
 
 
 ###################################################
-### code chunk number 29: vectools.Rnw:329-332
+### code chunk number 13: vectools.Rnw:121-122
 ###################################################
-head (
-    select (am, cyl, mpg, from (mtcars) )
-)
+sm
 
 
 ###################################################
-### code chunk number 30: vectools.Rnw:337-342
+### code chunk number 14: vectools.Rnw:125-126
 ###################################################
+getSect (sm, 3)
+
+
+###################################################
+### code chunk number 15: vectools.Rnw:133-140
+###################################################
+#grouped by am and cyl
+#with mean of mpg, by group
 select (am, cyl,
     from (mtcars),
     group.by (am, cyl),
@@ -225,9 +114,11 @@ select (am, cyl,
 
 
 ###################################################
-### code chunk number 31: vectools.Rnw:349-354
+### code chunk number 16: vectools.Rnw:143-150
 ###################################################
-select (am, cyl,
+#same as above
+#but partitioned and sorted
+selectf (am, cyl,
     from (mtcars),
     group.by (am, cyl), partition.by (am), sort.by (-am, -mean.mpg),
         count <- length (mpg),
@@ -235,48 +126,28 @@ select (am, cyl,
 
 
 ###################################################
-### code chunk number 32: vectools.Rnw:359-362
+### code chunk number 17: vectools.Rnw:158-166
 ###################################################
-head (
-    select (am, cyl, mpg, from (mtcars), where (mpg >= 20) )
-)
+getOption("SweaveHooks")[["fig"]]()
+#single polygon
+ps <- c (0, 1) %|*% eq.brot2 (5)
+#multiple polygons
+vm <- ps %]*% (
+    bscl2 (seq (1.4, 0.7,, 4) ) %*% #scale
+    btrl2 (,3.75) %{*}%             #translate
+    eq.brot2 (8) )                  #rotate
+polyplot (vm)
 
 
 ###################################################
-### code chunk number 33: vectools.Rnw:374-377
+### code chunk number 18: vectools.Rnw:174-175
 ###################################################
-x = as.SectMatrix (s20, 2)
-setmap (x, 1) = c (2, 2, 19, 19)
-setmap (x, 2) = c (3, 3, 18, 18)
+ghead (iris)
 
 
 ###################################################
-### code chunk number 34: vectools.Rnw:381-382
+### code chunk number 19: vectools.Rnw:181-182
 ###################################################
-headt (x, 6)
-
-
-###################################################
-### code chunk number 35: vectools.Rnw:386-387
-###################################################
-headt (x, c (3, 6) )
-
-
-###################################################
-### code chunk number 36: vectools.Rnw:393-394
-###################################################
-headt (x, 6, 3)
-
-
-###################################################
-### code chunk number 37: vectools.Rnw:404-405
-###################################################
-headg (iris, "Species")
-
-
-###################################################
-### code chunk number 38: vectools.Rnw:417-418
-###################################################
-headt (trees)
+headt (sm, 6, c (1, 2) )
 
 

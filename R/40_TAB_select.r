@@ -1,4 +1,4 @@
-#vectools: Supplementary Vector-Related Tools
+#vectools: Advanced Vector Toolkit
 #Copyright (C), Abby Spurdle, 2020
 
 #This program is distributed without any warranty.
@@ -12,21 +12,57 @@
 #https://cran.r-project.org/web/licenses/GPL-2
 
 .one = function (x)
-	(length (x) > 0 && .all.unique (x) )
-
-.all.unique = function (x)
-	(length (unique (x) ) == length (x) )
+	(length (x) > 0 && is.each.unique (x) )
 
 select = function (...)
-{	v = .select.call ()
-	dt = .from.val (v$fset)
+{	v = .select.call (...)
+	.select (v)
+}
+
+selectf = function (...)
+{	v = .select.call (..., .partition=TRUE)
+	dt = .select (v)
+	nr = nrow (dt)
+	nc = ncol (dt)
+
+	if (is.null (v$pset) )
+		J = 1
+	else
+		J = which (v$pset == names (dt) )
+	A = list ()
+	start = 1
+	for (i in 1:(nr - 1) )
+	{	if (dt [i, J] != dt [i + 1, J])
+		{	A = c (A, list (c (start, i) ) )
+			start = i + 1
+		}
+	}
+	A = c (A, list (c (start, nr) ) )
+	ns = length (A)
+
+	vmap = VMap (ns + 1)
+	for (i in 1:ns)
+		vmap [[i]] = matrix (c (A [[i]][1], 1, A [[i]][2], nc), 2, 2)
+	vmap [[ns + 1]] = matrix (c (1, J, nr, J), 2, 2)
+
+	y = as.SectMatrix (dt, vmap=vmap)
+	for (i in 1:ns)
+	{	x = cbind (getSect (y, i) )
+		x [-1, J] = ""
+		`.sSectMatrix.assign` (y, i, value=x)
+	}
+	y
+}
+
+.select = function (v)
+{	dt = .from.val (v$fset)
 	variables = .variables.val (v$variables, v$a, names (dt) )
 	.select.val (v$gset, v$pset, v$sset, v$wset, variables, v$a, v$b)
 	v$wset = .where.val (v$gset, v$wset, names (dt), v$a)
 	if (! is.null (v$wset) )
 	{	I = which (! v$wset$post)
 		for (i in I)
-			dt = .apply.wheref (dt, v$wset$op [i], v$wset$a [i], v$wset$b [i])
+			dt = .apply.wheref (dt, v$wset$op [i], v$wset$a [i], v$wset$b [i], v$wset$blit [i])
 	}
 	if (is.null (v$gset) )
 		dt = dt [,variables, drop=FALSE]
@@ -46,7 +82,7 @@ select = function (...)
 	if (! is.null (v$wset) )
 	{	I = which (v$wset$post)
 		for (i in I)
-			dt = .apply.wheref (dt, v$wset$op [i], v$wset$a [i], v$wset$b [i])
+			dt = .apply.wheref (dt, v$wset$op [i], v$wset$a [i], v$wset$b [i], v$wset$blit [i])
 	}
 	if (! is.null (v$sset) )
 	{	for (i in length (v$sset$s):1)
@@ -59,33 +95,11 @@ select = function (...)
 	}
 	nr = nrow (dt)
 	rownames (dt) = 1:nr
-	if (! is.null (v$pset) )
-	{	J = which (v$pset == names (dt) )
-		A = list ()
-		start = 1
-		for (i in 1:(nr - 1) )
-		{	if (dt [i, J] != dt [i + 1, J])
-			{	A = c (A, list (c (start, i) ) )
-				start = i + 1
-			}
-		}
-		A = c (A, list (c (start, nr) ) )
-		ns = length (A)
-		y = as.SectMatrix (dt, ns + 1)
-		for (i in 1:ns)
-		{	setmap (y, i) = c (A [[i]][1], 1, A [[i]][2], y@nc)
-			x = cbind (y [i])
-			x [-1, J] = ""
-			y [i] = x
-		}
-		setmap (y, ns + 1) = c (1, J, nr, J)
-		y
-	}
-	else
-		dt
+
+	dt
 }
 
-.select.call = function (...)
+.select.call = function (..., .partition=FALSE)
 {	from = .from
 	group.by = .group.by
 	partition.by = .partition.by
@@ -112,7 +126,7 @@ select = function (...)
 			f = as.character (k [[1]])
 			if (f == "from") fset = eval (u [[i]])
 			else if (f == "group.by") gset = eval (u [[i]])
-			else if (f == "partition.by") pset = eval (u [[i]])
+			else if (.partition && f == "partition.by") pset = eval (u [[i]])
 			else if (f == "sort.by") sset = eval (u [[i]])
 			else if (f == "where") wset = eval (u [[i]])
 			else
@@ -240,6 +254,7 @@ select = function (...)
 {	u = as.list (sys.call () )[-1]
 	n = length (u)
 	op = a = b = character (n)
+	blit = logical (n)
 	for (i in seq_len (n) )
 	{	if (inherits (u [[i]], "call") )
 		{	k = as.list (u [[i]])
@@ -250,11 +265,12 @@ select = function (...)
 				stop ("where, only (in)equalities allowed")
 			a [i] = as.character (k [[2]])
 			b [i] = as.character (k [[3]])
+			blit [i] = is.character (k [[3]])
 		}
 		else
 			stop ("where, only (in)equalities allowed")
 	}
-	list (post = rep (FALSE, n), op=op, a=a, b=b)
+	list (post = rep (FALSE, n), op=op, a=a, b=b, blit=blit)
 }
 
 .apply.aggregationf = function (gset, variables, a, b, dt)
@@ -270,5 +286,9 @@ select = function (...)
 	dt.2
 }
 
-.apply.wheref = function (dt, op, a, b)
+.apply.wheref = function (dt, op, a, b, blit)
+{	if (blit)
+		b = paste0 ('"', b, '"')
 	eval (parse (text = paste ("dt [dt$", a, op, b, ",,drop=FALSE]") ) )
+
+}
