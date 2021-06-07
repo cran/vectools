@@ -1,5 +1,5 @@
 #vectools: Advanced Vector Toolkit
-#Copyright (C), Abby Spurdle, 2020
+#Copyright (C), Abby Spurdle, 2020 to 2021
 
 #This program is distributed without any warranty.
 
@@ -13,7 +13,7 @@
 
 .assert.class.conform = function (CLASS, x)
 {	if (CLASS != "<OBJECT>" && ! is.null (x) )
-	{	if (! all (CLASS %in% class (x) ) )
+	{	if (! is (x, CLASS) )
 			stop ("input doesn't match class restrictions")
 	}
 }
@@ -66,31 +66,46 @@
 	}
 }
 
-"[.ObjectArray" = function (x, ...)
-{	if (x@N != 1)
+"[.ObjectArray" = function (v, ...)
+{	if (v@N != 1)
 		stop ("single bracket subsetting, supports 1-dim only")
 	I = unlist (list (...) )
-	y = x@data [I]
-	as.ObjectArray (y, x@CLASS, length (y) )
+	y = v@data [I]
+	as.ObjectArray (y, CLASS=v@CLASS, n = length (y) )
 }
 
-"[[.ObjectArray" = function (x, ...)
+"[.ImageArray" = function (v, ...)
+{	u = `[.ObjectArray` (v, ...)
+	new ("ImageArray", CLASS="RImage", N=1L, n = length (u), names = list (), data=u@data)
+}
+
+"[.GeomArray" = function (v, ...)
+{	u = `[.ObjectArray` (v, ...)
+	new ("GeomArray", CLASS="GeomObject", D=v@D, N=1L, n = length (u), names = list (), data=u@data)
+}
+
+"[.MatrixArray" = function (v, ...)
+{	u = `[.ObjectArray` (v, ...)
+	new ("MatrixArray", CLASS="matrix", N=1L, n = length (u), names = list (), conform=v@conform, data=u@data)
+}
+
+"[[.ObjectArray" = function (v, ...)
 {	I = unlist (list (...) )
-	x@data [[.mi2si (x@n, I)]]
+	v@data [[.mi2si (v@n, I)]]
 }
 
-"[[<-.ObjectArray" = function (x, ..., value)
+"[[<-.ObjectArray" = function (v, ..., value)
 {	I = unlist (list (...) )
-	.assert.class.conform (x@CLASS, value)
-	x@data [.mi2si (x@n, I)] = list (value)
-	x
+	.assert.class.conform (v@CLASS, value)
+	v@data [.mi2si (v@n, I)] = list (value)
+	v
 }
 
-"[[.NestMatrix" = function (x, i, j, ..., drop=TRUE, zero=TRUE)
-{	y = x@data [[.mi2si (x@n, c (i, j) )]]
+"[[.NestMatrix" = function (v, i, j, ..., drop=TRUE, zero=TRUE)
+{	y = v@data [[.mi2si (v@n, c (i, j) )]]
 	if (is.ZERO (y) && zero)
-	{	nrs = apply (x@nrs, 1, max)
-		ncs = apply (x@ncs, 2, max)
+	{	nrs = apply (v@nrs, 1, max)
+		ncs = apply (v@ncs, 2, max)
 		y = matrix (0, nrs [i], ncs [j])
 	}
 	if (drop && ! is.ZERO (y) )
@@ -103,22 +118,28 @@
 		y
 }
 
-"[[<-.NestMatrix" = function (x, i, j, value)
-{	r = .assert.nsub.conform (i, j, x@nrs [i,], x@ncs [,j], x@conform, x@recursive, value)
-	if (r [[2]]) x@nrs [i,] = r [[4]]
-	if (r [[3]]) x@ncs [,j] = r [[5]]
-	x@data [[.mi2si (x@n, c (i, j) )]] = r [[1]]
-	x
+"[[<-.NestMatrix" = function (v, i, j, value)
+{	r = .assert.nsub.conform (i, j, v@nrs [i,], v@ncs [,j], v@conform, v@recursive, value)
+	if (r [[2]]) v@nrs [i,] = r [[4]]
+	if (r [[3]]) v@ncs [,j] = r [[5]]
+	v@data [[.mi2si (v@n, c (i, j) )]] = r [[1]]
+	v
 }
 
-"[[.PartMatrix" = function (x, i, j, ..., drop=TRUE)
-	`.sSectMatrix` (x, i, j, drop=drop)
+"[[.PartMatrix" = function (v, i, j, ..., drop=TRUE)
+	`.sSectMatrix` (v, i, j, drop=drop)
 
-"[[<-.PartMatrix" = function (x, i, j, value)
-	`.sSectMatrix.assign` (x, i, j, value=value)
+"[[<-.PartMatrix" = function (v, i, j, value)
+	`.sSectMatrix.assign` (v, i, j, value=value)
 
-getSect = function (x, ..., drop=TRUE)
-	`.sSectMatrix` (x, ..., drop=drop)
+"[[<-.GeomArray" = function (v, ..., value)
+{	if (v@D != value@D)
+		stop ("GeomObject doesn't match GeomArray D (dimension) value")
+	`[[<-.ObjectArray` (v, ..., value=value)
+}
+
+getSect = function (v, ..., drop=TRUE)
+	`.sSectMatrix` (v, ..., drop=drop)
 
 ".sSectMatrix" = function (x, ..., drop=TRUE)
 {	vmap = x@vmap [[...]]

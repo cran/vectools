@@ -7,38 +7,45 @@
 \alias{[[<-.NestMatrix}
 \alias{[[.PartMatrix}
 \alias{[[<-.PartMatrix}
+\alias{[.GeomArray}
+\alias{[.ImageArray}
+\alias{[.MatrixArray}
+\alias{[[<-.GeomArray}
 \alias{getSect}
 \title{Subsetting Operators}
 \description{Subsetting operators for vector-like objects.}
 \usage{
-\method{[}{ObjectArray}(x, \dots)
-\method{[[}{ObjectArray}(x, \dots)
-\method{[[}{ObjectArray}(x, \dots) <- value
+\method{[}{ObjectArray}(v, \dots)
+\method{[[}{ObjectArray}(v, \dots)
+\method{[[}{ObjectArray}(v, \dots) <- value
 
-\method{[[}{NestMatrix}(x, i, j, \dots, drop=TRUE, zero=TRUE)
-\method{[[}{NestMatrix}(x, i, j) <- value
+\method{[[}{NestMatrix}(v, i, j, \dots, drop=TRUE, zero=TRUE)
+\method{[[}{NestMatrix}(v, i, j) <- value
 
-\method{[[}{PartMatrix}(x, i, j, \dots, drop=TRUE)
-\method{[[}{PartMatrix}(x, i, j) <- value
+\method{[[}{PartMatrix}(v, i, j, \dots, drop=TRUE)
+\method{[[}{PartMatrix}(v, i, j) <- value
+
+\method{[}{GeomArray}(v, \dots)
+\method{[}{ImageArray}(v, \dots)
+\method{[}{MatrixArray}(v, \dots)
+\method{[[}{GeomArray}(v, \dots) <- value
 
 #for SectMatrix
-getSect (x, \dots, drop=TRUE)
+getSect (v, \dots, drop=TRUE)
 }
 \arguments{
-\item{x}{A vector-like object.}
-\item{i, j, \dots}{
-	The indices.\cr
-	Except for SectMatrix double bracket subsetting, where they're ignored.}
-\item{drop}{Logical, reduce the number of dimensions, where possible.}
-\item{zero}{Logical, replace ZERO with zero, or a zero matrix.}
+\item{v}{An ObjectArray (including subclasses) or block matrix object.}
+\item{i, j, \dots}{The indices.}
+\item{drop}{Logical, if true, reduce the number of dimensions, where possible.}
+\item{zero}{Logical, if true, replace ZERO with zero, or a zero matrix.}
 \item{value}{A suitable value to assign.}
 }
 \details{
 ObjectArray (and NestMatrix), are similar to lists, so:\cr
-Single bracket subsetting applies to another ObjectArray which is a subset of the original.\cr
+Single bracket subsetting returns another ObjectArray, which is a subset of the original.\cr
 Double bracket subsetting gets or sets a single element within the ObjectArray.
 
-For SectMatrix (including PartMatrix):\cr
+For PartMatrix:\cr
 Currently, single bracket subsetting is not supported.\cr
 Currently, double bracket subsetting indexes a single submatrix.
 

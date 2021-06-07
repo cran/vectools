@@ -1,36 +1,39 @@
 \name{04_new_generic_functions}
+\alias{plotv}
+\alias{plot.VecLike}
 \alias{rep2}
 \alias{objtag}
 \alias{ghead}
 \alias{headt}
-\alias{pool}
-\alias{pool2}
+\alias{vt3.proj}
 \title{New Generic Functions}
 \description{New generic functions.}
 \usage{
+plotv (\dots)
+\method{plot}{VecLike}(x, \dots)
+
 rep2 (\dots)
+
+vt3.proj (\dots)
 
 objtag (\dots)
 
 ghead (\dots)
 headt (\dots)
-
-pool (\dots)
-pool2 (\dots)
 }
 \arguments{
-\item{\dots}{Arguments for the method.}
+\item{x, \dots}{Arguments for the method.}
 }
 \details{
+In general, it's not necessary to call the plotv function.\cr
+Calls to plot should call plotv, which in turn, should call the correct method.
+
 The rep2 function is similar to rep_len.\cr
 (It recycles arguments to a particular length).
 
 The objtag function is used inside formatted object arrays.
 
-The ghead and headt functions are for groupd head and combined head and tail.
-
-The pool function is for pooling.\cr
-The pool2 function is for pooling, but with a target size.
+The ghead and headt functions are for grouped head and combined head and tail.
 }
 \seealso{
 \link{rep.MatrixArray}, \link{rep2.MatrixArray}
@@ -40,11 +43,10 @@ The pool2 function is for pooling, but with a target size.
 \link{ghead.data.frame}
 
 \link{Combined Head and Tail Functions}
-
-\link{vt2.pool.matrix}
-
-\link{vt2.convolve.matrix}
 }
 \examples{
+plot (TCUBE)
+plotv (TCUBE)
+
 ghead (iris)
 }

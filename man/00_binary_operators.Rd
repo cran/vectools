@@ -1,49 +1,57 @@
 \name{00_binary_operators}
 \alias{Binary Operators}
+\alias{Matrix Array Multiplication}
 \alias{\%*\%,MatrixArray,MatrixArray-method}
 \alias{\%*\%,MatrixArray,matrix-method}
 \alias{\%*\%,matrix,MatrixArray-method}
-\alias{\%\{*\}\%}
 \alias{\%*[\%}
 \alias{\%*\{\%}
 \alias{\%*|\%}
 \alias{\%]*\%}
 \alias{\%\}*\%}
 \alias{\%|*\%}
-\title{Binary Operators}
+\alias{\%*||\%}
+\alias{\%||*\%}
+\title{Matrix Array Multiplication}
 \description{
-MatrixArray multiplication.
+Multiplication on \link{GeomArray} and \link{MatrixArray} objects.
 
-That is, multiplication of arrays of matrices.
+These functions call the \link{Transformation Functions}.
 }
 \usage{
+#simple matrix-array multiplication
 \S4method{\%*\%}{MatrixArray,MatrixArray}(x, y)
 \S4method{\%*\%}{MatrixArray,matrix}(x, y)
 \S4method{\%*\%}{matrix,MatrixArray}(x, y)
 
-#cartesian
-a \%\{*\}\% b
-
-#right padding
-#(for pre-multiplication)
+#pre-multiplication
+#(with right-side data objects)
 a \%*[\% b
 a \%*\{\% b
 a \%*|\% b
 
-#left padding
-#(for post-multiplication)
+#post-multiplication
+#(with left-side data objects)
 a \%]*\% b
 a \%\}*\% b
 a \%|*\% b
+
+a \%*||\% b
+a \%||*\% b
 }
 \arguments{
 \item{a, b}{
-	Comformable matrices or MatrixArray objects.\cr
-	If pad operators are used, then the objects need to be conformable after padding.}
+	In simple matrix-array multiplication, matrices or MatrixArray(s).\cr\cr
+	In pre-multiplication, a is the transformation object and b is the data object.\cr
+	In post-multiplication, a is the data object and b is the transformation object.\cr\cr
+	The transformation object should be a matrix or MatrixArray.\cr\cr
+	The data object should a matrix, GeomObject, GeomArray or MatrixArray.\cr
+	Except for row-wise and col-wise functions (with the vertical bars), where the data object should be a matrix.}
 \item{x, y}{Same as a and b.}
 }
 \details{
-The operators are designed for matrix array multiplication.
+The operators are designed for matrix array multiplication.\cr
+But can also be used to transform GeomObject(s) and GeomArray(s).
 
 If there are two matrix arrays, each with ten matrices of the same size:\cr
 And they are multiplied using the \%*\% operator, then each pair of matrices is multiplied using matrix multiplication, and a new matrix array is returned, of length ten.
@@ -56,31 +64,27 @@ And if the lengths of the matrix arrays are different, then one matrix array is 
 Often these operators can be used to apply transformation matrices to data.\cr
 In which case, the transformation matrices will often have one more row or column than the data.
 
-With the right-pad operator \%*[\%, an extra row of ones is rbinded to the right hand matrices before multiplication, and strips it off the result. Likewise, with the left-pad operator \%]*\%, an extra column of ones is cbinded to the left hand matrices before multiplication, and then strips it off.
+With the right-pad operator \%*[\%, an extra row of ones is rbinded to the right hand matrices before multiplication, and strips it off the result. Likewise, with the left-pad operator \%]*\%, an extra column of ones is cbinded to the left hand matrices before multiplication, and then strips it off.\cr
+The padded operators can also used on GeomObject(s), including GeomArray(s).
 
 There are a number of variations on this approach.
 
-The operator \%\{*\}\% performs cartesian matrix array multiplication, which works out the cartesian product of both matrix arrays, and multiplies all of them.\cr
+In cartesian-based matrix array multiplication, the resulting object is the product over the cartesian set of both matrix arrays.\cr
 If the matrix arrays have length 10 and 20, then the resulting matrix array will have length 200, not 20.
 
-The \%*\{\% and \%\}*\% operators also perform cartesian matrix array multiplication, but pad the right or left matrix arrays, respectively.
+The \%*\{\% and \%\}*\% operators perform cartesian matrix array multiplication, using a right or left data object, respectively.\cr
+These call the \link{vt3.gmultc.pre} and \link{vt3.gmultc.post} functions, which provide some more information.
 
-The \%*|\% and \%|*\% operators, perform column-wise and row-wise matrix array multiplication, with right or left padding.
+The \%*|\% and \%|*\% operators, perform column-wise and row-wise matrix array multiplication, with right or left padding.\cr
+The data object, which should be a matrix, is handled as a MatrixArray of padded column or row vectors.\cr
+The double bar operators are the same, except that the don't pad the operands.
 
-The \%*|\% operator changes the initial padded matrix array on the right, into a second padded matrix array of column vectors. Likewise, the \%|*\% changes the initial padded matrix array on the left, into a second padded matrix array of row vectors.
-
-Unlike the other operators, these operators will allow the data object to be a vector, and the result that's returned will be a single matrix.
-
-Note that results from the \%\{*\}\% operator are dependent on parentheses.
-
-Also, in post-multiplication with two or more transformations and left-padding of the left-most matrix array, we need to put all the transformations in parentheses, otherwise the result after the first multiplication will be non-conformable with the subsequent multiplications.
-
-Column-wise and row-wise multiplication can be used with the eq.arot2 or eq.brot2 functions to define a polygon easily.
+In post-multiplication (but not pre-multiplication) with two or more transformations and left-padding of the left-most matrix array, we need to put all the transformations in parentheses, otherwise the result after the first multiplication will be non-conformable with the subsequent multiplications.
 }
 \value{
 Column-wise and row-wise operators return a single matrix.
 
-All other operators return a MatrixArray.
+All other operators should return a GeomArray or MatrixArray.
 
 Note that the recycling order, is subject to change.
 }
@@ -91,7 +95,7 @@ Note that the recycling order, is subject to change.
 
 \link{Post-Multiplication Transformation Matrices}
 
-\link{polyplot}, \link{cubplot}
+\link{vt3.testplot}, \link{vt3.testplot3}
 }
 \examples{
 ########################################
@@ -99,5 +103,5 @@ Note that the recycling order, is subject to change.
 #Pre-Multiplication or Post-Multiplication
 #for better examples
 ########################################
-polyplot (sqps \%]*\% brot2 (pi / 8) )
+vt3.testplot (SQUARE \%]*\% brot2 (pi / 8) )
 }
